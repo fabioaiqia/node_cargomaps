@@ -27,5 +27,5 @@ DB_NAME=db
 DB_PORT=port
 
 ```
-npm install pg dotenv axios
+npm install express pg dotenv axios
 ```
