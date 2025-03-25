@@ -18,6 +18,13 @@ CREATE TABLE codes (
 );
 ```
 
+```sql
+ALTER TABLE registers
+ADD COLUMN name TEXT,
+ADD COLUMN surname TEXT,
+ADD COLUMN address TEXT;
+```
+
 # Intructions
 Create file .env in root folder
 DB_HOST=localhost
