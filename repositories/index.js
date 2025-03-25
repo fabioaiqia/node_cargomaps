@@ -72,9 +72,13 @@ const postRegisters = async (request, response) => {
         formData.append('groups', '["' + phone + '@s.whatsapp.net"]');
         formData.append('message', code);
         console.log('Generated code: ', phone, code);
-        await axios.post('https://aiqia-back-js-whatsappapi.rj.r.appspot.com/send-message/cargomaps', formData, {
+        const whatsappResponse = await axios.post('https://aiqia-back-js-whatsappapi.rj.r.appspot.com/send-message/cargomaps', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
+        
+        if(whatsappResponse < 200 || whatsappResponse.status >= 300) {
+            throw new Error('Falha ao enviar mensagem via whatsapp');
+        }
 
         await pool.query('COMMIT');
         response.json({ 
@@ -83,6 +87,7 @@ const postRegisters = async (request, response) => {
             code: code
         });
     } catch (error) {
+        await pool.query('ROLLBACK');
         console.error('Error ao registrar telefone: ', error);
         response.status(500).json({ error: 'Erro interno no servidor'});
     }
