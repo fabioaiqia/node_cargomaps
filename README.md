@@ -18,7 +18,7 @@ CREATE TABLE codes (
 );
 ```
 
-# A tabela foi alterada para receber todos os dados de cadastro do usuário
+# Alter table to recived new parameters
 ```sql
 ALTER TABLE registers
 ADD COLUMN name TEXT,
