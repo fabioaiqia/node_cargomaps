@@ -18,11 +18,13 @@ CREATE TABLE codes (
 );
 ```
 
+# A tabela foi alterada para receber todos os dados de cadastro do usuário
 ```sql
 ALTER TABLE registers
 ADD COLUMN name TEXT,
-ADD COLUMN surname TEXT,
+ADD COLUMN nickname TEXT,
 ADD COLUMN address TEXT;
+ADD COLUMN profile_picture TEXT
 ```
 
 # Intructions
