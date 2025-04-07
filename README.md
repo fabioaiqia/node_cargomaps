@@ -27,6 +27,18 @@ ADD COLUMN address TEXT;
 ADD COLUMN profile_picture TEXT
 ```
 
+# Create Table Trucks
+CREATE TABLE trucks (
+	id SERIAL PRIMARY KEY,
+	register_id INTEGER NOT NULL REFERENCES registers(id) ON DELETE CASCADE,
+	type VARCHAR(50) NOT NULL,
+	height DECIMAL(4,2),
+	width DECIMAL(4,2),
+	length DECIMAL(5,2),
+	weight INTEGER,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
+
 # Intructions
 Create file .env in root folder
 DB_HOST=localhost

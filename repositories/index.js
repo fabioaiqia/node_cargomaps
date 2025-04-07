@@ -1,5 +1,7 @@
 const { default: axios } = require("axios");
-const { pool } = require("../db")
+const { pool } = require("../db");
+const path = require('path');
+
 
 const generateCode = () => Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -15,6 +17,7 @@ const getValidateCode = async (request, response) => {
             r.phone,
             r.name,
             r.nickname,
+            r.profile_picture,
             r.address,
             c.code,
             c.created_at 
@@ -35,11 +38,12 @@ const getValidateCode = async (request, response) => {
                             "id": registerData.id,
                             "name": registerData.name,
                             "nickname": registerData.nickname,
-                            "address": registerData.address
+                            "address": registerData.address,
+                            'profile_picture': registerData.profile_picture
                         }
                     });
                 } else {
-                    response.status(404).json({ error: false });
+                    response.status(200).json({ success: false });
                 }
             })
         } catch (e) {
@@ -89,32 +93,29 @@ const postRegisters = async (request, response) => {
             console.log('Código novo criado para ser enviado');
         }
 
-        // const formData = new FormData();
-        // formData.append('groups', '["' + phone + '@s.whatsapp.net"]');
-        // formData.append('message', code);
+        // // const formData = new FormData();
+        // // formData.append('groups', '["' + phone + '@s.whatsapp.net"]');
+        // // formData.append('message', code);
         console.log('Generated code: ', phone, code);
-        // const whatsappResponse = await axios.post('https://aiqia-back-js-whatsappapi.rj.r.appspot.com/send-message/cargomaps', formData, {
-        //     headers: { 'Content-Type': 'multipart/form-data' },
-        // });
+        // // const whatsappResponse = await axios.post('https://aiqia-back-js-whatsappapi.rj.r.appspot.com/send-message/cargomaps', formData, {
+        // //     headers: { 'Content-Type': 'multipart/form-data' },
+        // // });
         
-        // if(whatsappResponse < 200 || whatsappResponse.status >= 300) {
-        //     throw new Error('Falha ao enviar mensagem via whatsapp');
-        // }
+        // // if(whatsappResponse < 200 || whatsappResponse.status >= 300) {
+        // //     throw new Error('Falha ao enviar mensagem via whatsapp');
+        // // }
 
         await pool.query('COMMIT');
-        response.status(200).json({ success: true });
+        response.status(200).json({ success: true }); 
     } catch (error) {
         await pool.query('ROLLBACK');
         console.error('Error ao registrar telefone: ', error);
         response.status(500).json({ error: 'Erro interno no servidor'});
     }
-
-    
 }
 
 const updateRegister = async (request, response) => {
-    const { id, name, nickname, address} = request.body;
-
+    const { id, name, nickname, address } = request.body;
     if(!nickname || nickname.trim() === '') {
         return response.status(400).json({ error: 'Nick name é obrigatório'})
     }
@@ -129,16 +130,34 @@ const updateRegister = async (request, response) => {
         let queryValues = [];
         let register;
 
+        let profilePicturePath = null;
+        if(request.file) {
+            profilePicturePath = path.join('uploads', path.basename(request.file.path)).replace(/\\/g, '/');
+            console.log('Caminho da imagem: ', profilePicturePath);
+        } else {
+            console.log('Nenhuma imagem enviada');
+        }
+
         if(registerOriginal.nickname !== nickname) {
             const newNicknameCheck = await pool.query('SELECT id FROM registers WHERE nickname = $1', [nickname]);
             if (newNicknameCheck.rows.length > 0) {
                 return response.status(400).json({ error: 'Nickname já está em uso' });
             }
-            queryText = 'UPDATE registers SET name = $1, nickname = $2, address = $3 WHERE id = $4 RETURNING *';
-            queryValues = [name, nickname, address, id];
+            if (profilePicturePath) {
+                queryText = 'UPDATE registers SET name = $1, nickname = $2, address = $3, profile_picture = $4 WHERE id = $5 RETURNING *';
+                  queryValues = [name, nickname, address, profilePicturePath, id];
+            } else {
+                queryText = 'UPDATE registers SET name = $1, nickname = $2, address = $3 WHERE id = $4 RETURNING *';
+                queryValues = [name, nickname, address, id];
+            }
         } else {
-            queryText = 'UPDATE registers SET name = $1, address = $2 WHERE id = $3 RETURNING *';
-            queryValues = [name, address, id];
+            if(profilePicturePath) {
+                queryText = 'UPDATE registers SET name = $1, address = $2, profile_picture = $3 WHERE id = $4 RETURNING *';
+                queryValues = [name, address, profilePicturePath, id];
+            } else {
+                queryText = 'UPDATE registers SET name = $1, address = $2 WHERE id = $3 RETURNING *';
+                queryValues = [name, address, id];
+            }
         }
         register = await pool.query(queryText, queryValues);
 
