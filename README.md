@@ -28,6 +28,7 @@ ADD COLUMN profile_picture TEXT
 ```
 
 # Create Table Trucks
+```sql
 CREATE TABLE trucks (
 	id SERIAL PRIMARY KEY,
 	register_id INTEGER NOT NULL REFERENCES registers(id) ON DELETE CASCADE,
@@ -38,6 +39,7 @@ CREATE TABLE trucks (
 	weight INTEGER,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )
+```
 
 # Intructions
 Create file .env in root folder

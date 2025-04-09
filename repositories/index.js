@@ -171,8 +171,56 @@ const updateRegister = async (request, response) => {
         return response.status(500).json({ error: 'Erro interno no servidor' });
     }
 }
+
+const postTruck = async (request, response) => {
+    const { register_id, type, height, width, length, weight } = request.body;
+  
+    if (!register_id || !type) {
+      return response.status(400).json({ error: 'Campos obrigatórios ausentes.' });
+    }
+  
+    try {
+      await pool.query('BEGIN');
+  
+      // Verifica se já existe um caminhão para esse register_id
+      const existingTruck = await pool.query(
+        'SELECT id FROM trucks WHERE register_id = $1',
+        [register_id]
+      );
+  
+      if (existingTruck.rows.length > 0) {
+        // Caminhão já existe, faz update
+        const truckId = existingTruck.rows[0].id;
+        await pool.query(
+          `UPDATE trucks 
+           SET type = $1, height = $2, width = $3, length = $4, weight = $5, created_at = NOW()
+           WHERE id = $6`,
+          [type, height, width, length, weight, truckId]
+        );
+        console.log(`Caminhão para register_id ${register_id} atualizado com sucesso.`);
+      } else {
+        // Não existe, cria novo
+        await pool.query(
+          `INSERT INTO trucks (register_id, type, height, width, length, weight)
+           VALUES ($1, $2, $3, $4, $5, $6)`,
+          [register_id, type, height, width, length, weight]
+        );
+        console.log(`Novo caminhão para register_id ${register_id} cadastrado com sucesso.`);
+      }
+  
+      await pool.query('COMMIT');
+      return response.status(200).json({ success: true });
+  
+    } catch (error) {
+      await pool.query('ROLLBACK');
+      console.error('Erro ao salvar caminhão:', error);
+      return response.status(500).json({ success: false, error: 'Erro ao salvar caminhão' });
+    }
+};  
+
 module.exports = {
     getValidateCode,
     postRegisters,
+    postTruck,
     updateRegister,
 }

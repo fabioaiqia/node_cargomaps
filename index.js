@@ -19,6 +19,7 @@ const upload = multer({ storage: storage });
 
 app.post('/validatecode', repository.getValidateCode)
 app.post('/registers', repository.postRegisters)
+app.post('/truck', repository.postTruck)
 app.put('/update-register', upload.single('profilePicture'), repository.updateRegister)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
