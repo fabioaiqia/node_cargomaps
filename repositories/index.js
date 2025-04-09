@@ -216,11 +216,33 @@ const postTruck = async (request, response) => {
       console.error('Erro ao salvar caminhão:', error);
       return response.status(500).json({ success: false, error: 'Erro ao salvar caminhão' });
     }
-};  
+};
+
+const getTruck = async (request, response) => {
+    const registerId = request.query.id;
+    if (!registerId) {
+      return response.status(400).json({ error: 'Parâmetro id (register_id) obrigatório' });
+    }
+  
+    try {
+      const result = await pool.query('SELECT * FROM trucks WHERE register_id = $1 LIMIT 1', [registerId]);
+  
+      if (result.rows.length === 0) {
+        return response.status(404).json({ truck: null });
+      }
+  
+      return response.status(200).json({ truck: result.rows[0] });
+    } catch (error) {
+      console.error('Erro ao buscar caminhão:', error);
+      return response.status(500).json({ error: 'Erro interno ao buscar caminhão' });
+    }
+  };
+  
 
 module.exports = {
     getValidateCode,
     postRegisters,
     postTruck,
+    getTruck,
     updateRegister,
 }
